@@ -1,0 +1,79 @@
+{
+    "id": "6a9b79c9-d6d2-47c8-82b3-261318572eaa",
+    "created_at": 1790148196.0,
+    "error": null,
+    "incomplete_details": null,
+    "instructions": null,
+    "metadata": {},
+    "model": "deepseek-flash",
+    "object": "response",
+    "output": [
+        {
+            "id": "d7e47684-205d-4804-ab19-3d8fc40a032b",
+            "content": [
+                {
+                    "annotations": [],
+                    "text": "# Tool Calling（工具调用）介绍\n\n**Tool Calling**（也叫 **Function Calling**，函数调用）是大语言模型（LLM）的一项重要能力：**让模型能够调用外部工具/函数来完成任务**，而不仅仅是生成文本。\n\n## 为什么需要它？\n\nLLM 本身有几大局限：\n- 无法获取实时信息（如今天的天气、股价）\n- 不擅长精确计算\n- 无法直接操作外部系统（发邮件、查数据库、下单）\n\nTool Calling 让模型可以\"借用\"外部能力来突破这些限制。\n\n## 工作原理\n\n典型流程如下：\n\n```\n1. 用户提问 + 工具定义  →  发送给 LLM\n2. LLM 判断是否需要调用工具\n3. 若需要，返回结构化的调用请求（工具名 + 参数）\n4. 你的代码执行该工具，拿到结果\n5. 结果返回给 LLM\n6. LLM 结合结果生成最终回答\n```\n\n### 举例\n\n**用户问**：\"北京现在天气怎么样？\"\n\n**你给模型提供的工具**：\n```json\n{\n  \"name\": \"get_weather\",\n  \"description\": \"查询指定城市的天气\",\n  \"parameters\": {\n    \"city\": \"string\"\n  }\n}\n```\n\n**模型返回**（不是文本，而是结构化调用）：\n```json\n{\n  \"name\": \"get_weather\",\n  \"arguments\": { \"city\": \"北京\" }\n}\n```\n\n**你的程序**执行这个函数，拿到 `\"晴，25°C\"`，再喂回模型。\n\n**模型最终回复**：\"北京现在晴，气温 25°C。\"\n\n## 关键点\n\n| 特性 | 说明 |\n|------|------|\n| **模型不执行函数** | 模型只输出\"要调用什么\"，实际执行由你的代码完成 |\n| **结构化输出** | 参数是 JSON 格式，方便程序解析 |\n| **由模型自主决策** | 是否调用、调用哪个、传什么参数，都由模型判断 |\n| **可多轮调用** | 一次对话中可连续调用多个工具（如先查天气再订机票） |\n\n## 常见应用场景\n\n- 🔍 **联网搜索**：获取实时信息\n- 🧮 **计算器/代码解释器**：精确计算\n- 🗄️ **数据库查询**：获取业务数据\n- 📅 **API 调用**：订票、发邮件、操作 CRM\n- 🤖 **Agent 系统**：多个工具组合完成复杂任务\n\n## 与相关概念的关系\n\n- **Function Calling**：几乎同义，OpenAI 早期叫法\n- **MCP（Model Context Protocol）**：Anthropic 提出的标准协议，用于规范工具如何提供给模型\n- **Agent**：基于 Tool Calling 构建的自主智能体，能规划并连续使用多个工具\n\n## 简单代码示例（OpenAI 风格）\n\n```python\ntools = [{\n    \"type\": \"function\",\n    \"function\": {\n        \"name\": \"get_weather\",\n        \"description\": \"获取城市天气\",\n        \"parameters\": {\n            \"type\": \"object\",\n            \"properties\": {\"city\": {\"type\": \"string\"}},\n            \"required\": [\"city\"]\n        }\n    }\n}]\n\nresponse = client.chat.completions.create(\n    model=\"gpt-4\",\n    messages=[{\"role\": \"user\", \"content\": \"北京天气?\"}],\n    tools=tools\n)\n# 模型会返回 tool_calls，你再执行对应函数\n```\n\n---\n\n一句话总结：**Tool Calling 让 LLM 从\"只会说\"变成\"能做事\"，是构建 AI Agent 的基础能力。**\n\n需要我深入讲讲某个方面吗？比如如何设计工具、如何处理多轮调用，或 MCP 的关系？",
+                    "type": "output_text",
+                    "logprobs": []
+                }
+            ],
+            "role": "assistant",
+            "status": "completed",
+            "type": "message",
+            "phase": "final_answer"
+        }
+    ],
+    "parallel_tool_calls": true,
+    "temperature": 1.0,
+    "tool_choice": "auto",
+    "tools": [],
+    "top_p": 1.0,
+    "background": false,
+    "completed_at": 1790148199.0,
+    "conversation": null,
+    "max_output_tokens": null,
+    "max_tool_calls": null,
+    "moderation": null,
+    "previous_response_id": null,
+    "prompt": null,
+    "prompt_cache_diagnostics": null,
+    "prompt_cache_key": null,
+    "prompt_cache_options": null,
+    "prompt_cache_retention": null,
+    "reasoning": {
+        "context": null,
+        "effort": null,
+        "generate_summary": null,
+        "mode": null,
+        "summary": null
+    },
+    "safety_identifier": null,
+    "service_tier": "default",
+    "status": "completed",
+    "text": {
+        "format": {
+            "type": "text"
+        },
+        "verbosity": null
+    },
+    "top_logprobs": 0,
+    "truncation": "disabled",
+    "usage": {
+        "input_tokens": 10,
+        "input_tokens_details": {
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+        },
+        "output_tokens": 807,
+        "output_tokens_details": {
+            "reasoning_tokens": 0
+        },
+        "total_tokens": 817
+    },
+    "user": null,
+    "content_filters": null,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0,
+    "store": false
+}
