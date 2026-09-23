@@ -6,6 +6,7 @@
 
 - `logging.conf` 日志打印配置文件
 - `anser.md` 存储一些ai问题的解答
+- `.env` 存储模型的key等信息（不提交）
 - `requirements.txt` 存储学习过程中项目所需依赖
 - utils
     - `logger.py` 日志打印工具类
@@ -17,3 +18,4 @@
     - `tool-call.py` 关于tool-calls的详细工作流程
 - agentssdk
     - `00-helloworld.py` 使用`openai-agents` 完成Hello world 示例
+    - `01-first-agent-runner.py` 首个智能体运行
