@@ -197,5 +197,5 @@ log.info(final_response)
 log.info(final_response.output_text) #  南宁现在天气**晴**，气温大约 **31°C**，比较炎热，出门注意防晒补水。☀️
 ```
 
-*值得注意的是，在交还模型的过程中，记得使用`my_input.append(item)`追加function_call请求*
+*值得注意的是，在交还模型的过程中，记得使用`my_input.append(item)`追加function_call请求（不知道是不是deepseek的需求，GPT提供的文档没有这一步，导致了`Error code: 400 - {'error': {'message': 'No tool call found for tool output with call_id call_00_O6f4tl0zhNSnjrPAmoSb6262.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_request_error'}}`异常，问了deepseek，回答是只追加了 function_call_output，却遗漏了与之配对的 function_call 本身。）*
 *再次返回时，不会是冷冰冰的tool结果，而会添加模型的一些分析回答。至此，完成 用户 → 模型 → Tool Call → Python Tool → Tool Output → 模型 → 最终回答 闭环。*
