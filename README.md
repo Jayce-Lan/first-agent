@@ -198,4 +198,4 @@ log.info(final_response.output_text) #  南宁现在天气**晴**，气温大约
 ```
 
 *值得注意的是，在交还模型的过程中，记得使用`my_input.append(item)`追加function_call请求*
-*再次返回时，不会是冷冰冰的tool结果，而会添加模型的一些分析回答*
+*再次返回时，不会是冷冰冰的tool结果，而会添加模型的一些分析回答。至此，完成 用户 → 模型 → Tool Call → Python Tool → Tool Output → 模型 → 最终回答 闭环。*
