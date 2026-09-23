@@ -26,6 +26,7 @@
     - `00-calling.py` 不使用tool直接调用模型
     - `01-create-tool.py` 定义第一个tool
     - `02-call-function.py` 程序执行tool
+    - `03-input-append.py` 把 Tool Output 交还给模型
 
 ## 知识点
 
@@ -95,10 +96,16 @@ weather_tool = {
 > 让模型产生tool call
 
 ```python
+my_input = [
+    {"role": "user", "content": "北京现在天气怎么样？"}
+]
+
+tools = [weather_tool]
+
 response = client.responses.create(
     model=DEFAULT_MODEL,
-    tools=[weather_tool],
-    input="南宁的天气如何？"
+    tools=tools,
+    input=my_input
 )
 ```
 *注意！该步骤中只是让模型产生tool，但是模型只是提出调用请求，它没有执行Python 函数*
@@ -122,7 +129,7 @@ def call_function(name, args):
     raise ValueError(f"Unknown tool: {name}")
 ```
 
-> 执行自己定义的tool
+> 执行自己定义的tool（与下方代码重复）
 
 ```python
 for item in response.output:
@@ -131,3 +138,64 @@ for item in response.output:
         result = call_function(item.name, args)
         log.info(f'工具结果: {result}')
 ```
+
+*至此，程序完成：模型 → function_call → Python → get_weather() → result*
+
+> 把Tool output交还模型
+
+模型只会"说"它想调用哪个工具，它没有手。get_weather 是你在本地执行的，执行结果必须通过 input.append 喂回给模型，模型才能基于这个结果生成最终回答。这就是 Agent 从"模型提请求"到"给出答案"必经的一次往返，也是 ReAct 循环的核心。
+```
+        ┌─────────────────────────────┐
+        │  用户输入 / 工具结果        │
+        └──────────────┬──────────────┘
+                       ↓
+              ┌────────────────┐
+              │  调用 LLM      │
+              └────────┬───────┘
+                       ↓
+              ┌────────────────┐
+              │ 模型输出是什么？│
+              └────┬───────┬───┘
+        要调工具    │       │  直接回答
+                   ↓       ↓
+          ┌────────────┐  ┌────────┐
+          │ 本地执行工具│  │ 返回答案│
+          └─────┬──────┘  └────────┘
+                ↓
+        ┌──────────────────┐
+        │ 把结果追加到 input│
+        └────────┬─────────┘
+                 ↓
+              （回到调用 LLM）
+```
+- 单次工具调用：循环 2 次（请求 → 执行 → 回答）
+- 多步任务（比如"先查天气，再决定穿什么"）：循环可能 3 次、4 次……
+- 模型直接回答（不需要工具）：循环 1 次就结束
+
+```python
+for item in response.output:
+    if item.type == "function_call":
+        args = orjson.loads(item.arguments)
+        result = call_function(item.name, args)
+        log.info(f'工具结果: {result}') #  工具结果: {'temperature': 31, 'condition': '晴'}
+
+        # 追加模型的 function_call 请求
+        my_input.append(item)
+        # 再追加工具的执行结果
+        my_input.append({
+            "type": "function_call_output",
+            "call_id": item.call_id,
+            "output": orjson.dumps(result).decode("utf-8")
+        })
+
+final_response = client.responses.create(
+    model=DEFAULT_MODEL,
+    tools=tools,
+    input=my_input
+)
+log.info(final_response)
+log.info(final_response.output_text) #  南宁现在天气**晴**，气温大约 **31°C**，比较炎热，出门注意防晒补水。☀️
+```
+
+*值得注意的是，在交还模型的过程中，记得使用`my_input.append(item)`追加function_call请求*
+*再次返回时，不会是冷冰冰的tool结果，而会添加模型的一些分析回答*
