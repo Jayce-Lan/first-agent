@@ -1,0 +1,17 @@
+# 忽略整个文件夹
+node_modules/
+dist/
+build/
+.idea/
+.vscode/
+logs/
+.venv/
+
+# 忽略所有某种后缀的文件
+*.log
+*.tmp
+*.DS_Store
+
+__pycache__
+
+.env
