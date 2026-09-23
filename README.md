@@ -25,6 +25,7 @@
 - toolcalling
     - `00-calling.py` 不使用tool直接调用模型
     - `01-create-tool.py` 定义第一个tool
+    - `02-call-function.py` 程序执行tool
 
 ## 知识点
 
@@ -44,3 +45,89 @@
 | strict | 让工具参数更加严格地遵循 Schema。 |
 
 一个非常重要的思想：Tool Schema 就像给模型看的 API 接口文档。模型不是直接读取你的 Python 函数签名，而是根据你提供的工具定义生成调用参数。
+
+#### 单个Tool call的执行流程
+
+> 声明Python函数
+
+```python
+def get_weather(city:str):
+    """定义一个本地函数，存储天气信息
+
+    Args:
+        city: 传入城市
+    Returns:
+        返回城市天气情况
+    """
+    weather = {
+        "南宁": {"temperature": 31, "condition": "晴"},
+        "深圳": {"temperature": 28, "condition": "多云"},
+        "新加坡": {"temperature": 31, "condition": "雷阵雨"},
+    }
+    return weather.get(
+        city, 
+        {"temperature": None, "condition": "暂无数据"}
+        )
+```
+
+> 定义一个tool
+
+```python
+weather_tool = {
+    "type": "function",
+    "name": "get_weather",
+    "description": "查询指定城市的当前天气。",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "city": {
+                "type": "string",
+                "description": "城市名称，例如南宁、深圳、新加坡"
+            }
+        },
+        "required": ["city"],
+        "additionalProperties": False
+    },
+    "strict": True
+}
+```
+
+> 让模型产生tool call
+
+```python
+response = client.responses.create(
+    model=DEFAULT_MODEL,
+    tools=[weather_tool],
+    input="南宁的天气如何？"
+)
+```
+*注意！该步骤中只是让模型产生tool，但是模型只是提出调用请求，它没有执行Python 函数*
+
+> 创建方法读取调用模型返回值
+
+```python
+def call_function(name, args):
+    """获取调用模型返回的arguments中的城市名称
+    
+    Args:
+        name: 方法名
+        args: arguments里存储城市名称的返回值
+    Returns:
+        返回get_weather调用结果
+    Raises:
+        城市不存在时抛出异常
+    """
+    if name == "get_weather":
+        return get_weather(args["city"])
+    raise ValueError(f"Unknown tool: {name}")
+```
+
+> 执行自己定义的tool
+
+```python
+for item in response.output:
+    if item.type == "function_call":
+        args = orjson.loads(item.arguments)
+        result = call_function(item.name, args)
+        log.info(f'工具结果: {result}')
+```
