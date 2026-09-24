@@ -114,3 +114,50 @@
         "prompt_cache_miss_tokens": 189
     }
 }
+
+[
+    {
+        "role": "user",
+        "content": "南宁和深圳今天天气怎么样？"
+    },
+    {
+        "content": "我来帮您查询南宁和深圳的天气。",
+        "role": "assistant",
+        "tool_calls": [
+            {
+                "id": "call_00_ZFd0Qh5A0DbBstvvmKgZ8497",
+                "function": {
+                    "arguments": "{\"city\": \"南宁\"}",
+                    "name": "get_weather"
+                },
+                "type": "function",
+                "index": 0
+            },
+            {
+                "id": "call_01_OJGLdNFIOgtQ6gpTRFTZ6121",
+                "function": {
+                    "arguments": "{\"city\": \"深圳\"}",
+                    "name": "get_weather"
+                },
+                "type": "function",
+                "index": 1
+            }
+        ],
+        "reasoning_content": "The user asks about weather in Nanning and Shenzhen. I should make both calls in parallel."
+    },
+    {
+        "role": "tool",
+        "tool_call_id": "call_00_ZFd0Qh5A0DbBstvvmKgZ8497",
+        "content": "{\"temperature\":31,\"weather\":\"晴\"}"
+    },
+    {
+        "role": "tool",
+        "tool_call_id": "call_01_OJGLdNFIOgtQ6gpTRFTZ6121",
+        "content": "{\"temperature\":30,\"weather\":\"雷阵雨\"}"
+    },
+    {
+        "content": "今天两地的天气情况如下：\n\n| 城市 | 天气 | 气温 |\n|------|------|------|\n| 南宁 | 晴 | 31℃ |\n| 深圳 | 雷阵雨 | 30℃ |\n\n简单提示：南宁今天晴天、气温偏高（31℃），外出注意防晒补水；深圳有雷阵雨，气温 30℃，建议随身带伞，雷雨时尽量减少户外活动、避开空旷地带和树下。",
+        "role": "assistant",
+        "reasoning_content": "Now provide the answer. Note the tool calls were already invoked once — I should now give the final answer without repeating a duplicate call."
+    }
+]
