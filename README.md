@@ -5,7 +5,6 @@
 ## 目录情况
 
 - `logging.conf` 日志打印配置文件
-- `anser.md` 存储一些ai问题的解答
 - `.env` 存储模型的key等信息（不提交）
 - `requirements.txt` 存储学习过程中项目所需依赖
 - `myjson.json` 一个json文件，便于格式化json
@@ -14,6 +13,7 @@
     - `getagentkey.py` 由于使用deepseek作为模型，因此需要重写一些OpenAI原本封装好的属性，便于后续各个文件调用
     - `getclient.py` 封装client，便于后续调用
     - `constants.py` 放置常量
+    - `json_utils.py` 格式化JSON的工具，用于打印日志，便于查看
 - toolcalling: tool calling的学习
     - `00-calling.py` 不使用tool直接调用模型
     - `01-create-tool.py` 定义第一个tool
@@ -22,6 +22,7 @@
 - agentloop: Agent Loop的学习
     - `00-use-client-chat.py` 使用与原来`client.responses.create()`不同的请求，返回对象会不一致
     - `01-create-tool2.py` 使用`client.chat.completions.create`调用LLM，使LLM获取Tool并获取返回值
+    - `02-first-agent-loop.py` Agent Loop第一版
 
 ---
 
@@ -115,6 +116,15 @@ response = client.responses.create(
 )
 ```
 *注意！该步骤中只是让模型产生tool，但是模型只是提出调用请求，它没有执行Python 函数*
+
+input/messages中的角色
+
+|role |	谁说的 |	作用 |
+| --- | --- | --- |
+|system |	开发者 |	设定模型的身份、行为规范、约束 |
+|user |	用户 |	用户输入的问题或指令 |
+|assistant |	模型 |	模型之前的回复（包括纯文本和 tool_calls） |
+|tool |	你的程序 |	工具执行结果，回传给模型 |
 
 > 创建方法读取调用模型返回值
 
@@ -283,3 +293,60 @@ LLM
 > **Agent Loop = LLM + Tool + Tool Result + 循环**
 
 这也是理解 Agent 最重要的一步。
+
+#### Agent Loop的简易执行流程
+
+现在默认整个执行都在一个循环当中，在模型返回不再需要调用Tool前，都会一直调用Tool，直到模型判定不再需要调用为止
+
+> 请求模型并获得请求结果
+
+```python
+response = client.chat.completions.create(
+    model=DEEPSEEK_FLASH_MOEDL,
+    messages=messages,
+    tools=tools,
+)
+message = response.choices[0].message
+```
+
+> 把 assistant 的响应加入历史
+
+```python
+messages.append(message)
+```
+
+> 没有 Tool Call，说明模型已经可以直接回答，并结束Agent Loop
+
+```python
+if not message.tool_calls:
+    log.info(f"tool_calls已为空，可以输出结果：{message.content}")
+    break
+```
+
+> 执行所有 Tool Call，并将结果返回给模型
+
+```python
+# 执行所有 Tool Call
+for tool_call in message.tool_calls:
+    tool_name = tool_call.function.name
+    arguments = orjson.loads(tool_call.function.arguments)
+    if tool_name == "get_weather":
+        result = get_weather(arguments["city"])
+    else:
+        result = {"error": f"未知工具：{tool_name}"}
+    # 将结果返回给模型
+    messages.append({
+        "role": "tool",
+        "tool_call_id": tool_call.id,
+        "content": orjson.dumps(result).decode("utf-8")
+    })
+```
+
+> LLM表达结束的方式
+
+| 信号 | 含义 |
+| --- | --- |
+| message.tool_calls 为空 |	模型没有要求调用工具，直接给了文字回答 |
+| finish_reason == "stop" |	模型正常说完了 |
+| finish_reason == "tool_calls" | 模型要求调工具，循环要继续 |
+| finish_reason == "length" | 输出被截断，属于异常情况 |
