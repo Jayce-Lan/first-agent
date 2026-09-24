@@ -21,6 +21,7 @@
     - `03-input-append.py` 把 Tool Output 交还给模型
 - agentloop: Agent Loop的学习
     - `00-use-client-chat.py` 使用与原来`client.responses.create()`不同的请求，返回对象会不一致
+    - `01-minimal-loop.py` 完整最小Agent Loop
 
 ---
 
@@ -237,3 +238,16 @@ Python 根据工具名找到已注册函数 → 校验参数 → 执行函数
 
 OpenAI 官方把这个过程归纳为五步：提供工具、收到调用、应用程序执行、把结果发回模型、获得答案或更多调用。**Agent Loop 就是重复后面几步的 Python 控制循环**，不是让模型获得直接执行 Python 的权限。参见 [OpenAI Function Calling](https://developers.openai.com/api/docs/guides/function-calling/)。
 
+> 按执行顺序解读`01-minimal-loop.py`这段代码：
+
+1. `messages` 初始只有系统说明和用户提问。它是这次任务的“对话本”。DeepSeek 的多轮 Chat Completions 需要程序自行管理并再次传入历史消息。参见 DeepSeek Multi-round Conversation。
+2. 每进一次 for，就向模型发出一次请求。max_rounds=5 限制模型请求轮数，避免反复调用不结束。
+3. `assistant_message.tool_calls or []`：没有调用时得到空列表；有调用时可能有一条，也可能有多条。
+4. `finish_reason="length"` 可能意味着生成被截断，这时不要执行不完整的 JSON。tool_calls 通常表示模型提出工具调用，stop 通常表示生成结束；仍要检查实际的 message.tool_calls。其他非正常停止原因交由程序处理。参见 DeepSeek API 参考。
+5. `if not calls`：这轮模型不再要工具，返回文本，循环完成。
+6. `messages.append(assistant_message.model_dump(...))`：保存模型提出工具调用的原消息。不能只保存工具执行结果，否则下一轮模型看不到自己刚提出的调用。
+7. `orjson.loads(...)`：把模型返回的参数 JSON 字符串转成 Python 字典。模型产出的内容都要校验，所以检查字段集合、类型和值。
+8. `tool_call_id=call.id`：工具结果必须对应具体的调用 ID。它不是工具名。json.dumps(..., ensure_ascii=False) 把字典变为结果消息需要的字符串，并保持中文可读。
+9. `except`：参数错误也返回结构化错误，使模型知道工具没成功；不把未经校验的参数直接传给业务函数。
+
+试运行：`01-minimal-loop.py`。模型可能在第一轮同时请求北京、新加坡两个天气，也可能先请求一个再请求另一个。两种都属于正常行为。
