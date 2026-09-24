@@ -21,7 +21,7 @@
     - `03-input-append.py` 把 Tool Output 交还给模型
 - agentloop: Agent Loop的学习
     - `00-use-client-chat.py` 使用与原来`client.responses.create()`不同的请求，返回对象会不一致
-    - `01-minimal-loop.py` 完整最小Agent Loop
+    - `01-create-tool2.py` 使用`client.chat.completions.create`调用LLM，使LLM获取Tool并获取返回值
 
 ---
 
@@ -210,44 +210,76 @@ log.info(final_response.output_text) #  南宁现在天气**晴**，气温大约
 
 ### Agent Loop
 
-**Agent Loop（智能体循环）** 是 AI Agent 的核心运行机制：它让模型不是只做一次“输入→输出”，而是围绕一个目标不断重复 **观察 → 思考/规划 → 行动 → 获取反馈 → 更新状态**，直到任务完成或触发终止条件。也就是常说的 ReAct 循环：推理、行动、观察，再推理。
 
-> 普通 LLM 调用通常是：
+> **LLM 不是真的在执行 Python 函数。**
 
-输入 → 模型生成 → 输出
+例如我们定义：
 
-> Agent Loop 则是：
-
-输入 → 多轮推理 → 调用工具 → 读取结果 → 调整计划 → 再行动 → 输出
-
-它让 LLM 从“一次性文本生成器”变成能多步执行、试错和利用外部信息的“自主执行器”。
-
-```text
-用户提出问题
-    ↓
-Python 发出请求：messages + tools + tool_choice
-    ↓
-模型返回普通回答，或返回一个/多个 tool_calls
-    ↓ 若返回 tool_calls
-Python 根据工具名找到已注册函数 → 校验参数 → 执行函数
-    ↓
-把 assistant 的调用消息和每条 tool 结果追加到 messages
-    ↓
-再次请求模型；重复，直至普通回答或达到限制
+```python
+def get_weather(city: str):
+    return {"city": city, "temperature": 25}
 ```
 
-OpenAI 官方把这个过程归纳为五步：提供工具、收到调用、应用程序执行、把结果发回模型、获得答案或更多调用。**Agent Loop 就是重复后面几步的 Python 控制循环**，不是让模型获得直接执行 Python 的权限。参见 [OpenAI Function Calling](https://developers.openai.com/api/docs/guides/function-calling/)。
+模型实际上不会直接执行：
 
-> 按执行顺序解读`01-minimal-loop.py`这段代码：
+```python
+get_weather("上海")
+```
 
-1. `messages` 初始只有系统说明和用户提问。它是这次任务的“对话本”。DeepSeek 的多轮 Chat Completions 需要程序自行管理并再次传入历史消息。参见 DeepSeek Multi-round Conversation。
-2. 每进一次 for，就向模型发出一次请求。max_rounds=5 限制模型请求轮数，避免反复调用不结束。
-3. `assistant_message.tool_calls or []`：没有调用时得到空列表；有调用时可能有一条，也可能有多条。
-4. `finish_reason="length"` 可能意味着生成被截断，这时不要执行不完整的 JSON。tool_calls 通常表示模型提出工具调用，stop 通常表示生成结束；仍要检查实际的 message.tool_calls。其他非正常停止原因交由程序处理。参见 DeepSeek API 参考。
-5. `if not calls`：这轮模型不再要工具，返回文本，循环完成。
-6. `messages.append(assistant_message.model_dump(...))`：保存模型提出工具调用的原消息。不能只保存工具执行结果，否则下一轮模型看不到自己刚提出的调用。
-7. `orjson.loads(...)`：把模型返回的参数 JSON 字符串转成 Python 字典。模型产出的内容都要校验，所以检查字段集合、类型和值。
-8. `tool_call_id=call.id`：工具结果必须对应具体的调用 ID。它不是工具名。json.dumps(..., ensure_ascii=False) 把字典变为结果消息需要的字符串，并保持中文可读。
-9. `except`：参数错误也返回结构化错误，使模型知道工具没成功；不把未经校验的参数直接传给业务函数。
+真正发生的是：
 
-试运行：`01-minimal-loop.py`。模型可能在第一轮同时请求北京、新加坡两个天气，也可能先请求一个再请求另一个。两种都属于正常行为。
+```text
+用户
+ ↓
+LLM
+ ↓
+LLM 返回：
+“我要调用 get_weather，参数是 city=上海”
+ ↓
+你的 Python 程序
+ ↓
+真正执行 get_weather("上海")
+ ↓
+得到结果
+ ↓
+Python 把结果发送回 LLM
+ ↓
+LLM 根据工具结果生成最终回答
+```
+
+因此 Tool Calling 的本质可以概括为：
+
+```text
+LLM 负责决定“调用什么、参数是什么”
+程序负责真正“执行什么”
+```
+
+而 **Agent Loop** 就是在 Tool Calling 的基础上增加一个循环：
+
+```text
+用户问题
+   ↓
+LLM
+   ↓
+是否需要 Tool？
+ ┌─┴─────────────┐
+ 否              是
+ ↓               ↓
+最终回答      执行 Tool
+                 ↓
+             Tool Result
+                 ↓
+                LLM
+                 ↓
+          是否还需要 Tool？
+           ┌─────┴─────┐
+          否           是
+          ↓            ↓
+       最终回答      再执行 Tool
+```
+
+因此：
+
+> **Agent Loop = LLM + Tool + Tool Result + 循环**
+
+这也是理解 Agent 最重要的一步。

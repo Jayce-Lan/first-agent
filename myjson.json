@@ -59,7 +59,7 @@
         }
     },
     {
-        "id": "69a1e2c0-db92-42e6-bff2-91ca058b865d",
+        "id": "40e46cc8-4c93-4ad0-9e3a-6241efb9efaa",
         "choices": [
             {
                 "finish_reason": "tool_calls",
@@ -74,38 +74,20 @@
                     "function_call": null,
                     "tool_calls": [
                         {
-                            "id": "call_00_3S1M5NUiIfylzfcK4kTP9347",
-                            "function": {
-                                "arguments": "{\"city\": \"北京\"}",
-                                "name": "get_weather"
-                            },
-                            "type": "function",
-                            "index": 0
-                        },
-                        {
-                            "id": "call_01_gZyYQTakftaehKKtBzYz3609",
+                            "id": "call_00_cNtRkz4X5dfVxZ1SYkIV6921",
                             "function": {
                                 "arguments": "{\"city\": \"南宁\"}",
                                 "name": "get_weather"
                             },
                             "type": "function",
-                            "index": 1
-                        },
-                        {
-                            "id": "call_02_C5AmZShXGm5fRgfiRcXG9563",
-                            "function": {
-                                "arguments": "{\"city\": \"新加坡\"}",
-                                "name": "get_weather"
-                            },
-                            "type": "function",
-                            "index": 2
+                            "index": 0
                         }
                     ],
-                    "reasoning_content": "The user asks about weather in Beijing, Nanning, Singapore. I should call get_weather for each. Note that this is a demo weather, not real-time. I must not call it real-time weather.\n\nLet me make three independent calls in one block."
+                    "reasoning_content": "The user is asking about the weather in Nanning today. I should use the get_weather tool."
                 }
             }
         ],
-        "created": 1790220977,
+        "created": 1790235651,
         "model": "deepseek-flash",
         "object": "chat.completion",
         "metadata": null,
@@ -113,13 +95,13 @@
         "service_tier": null,
         "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
         "usage": {
-            "completion_tokens": 150,
-            "prompt_tokens": 326,
-            "total_tokens": 476,
+            "completion_tokens": 60,
+            "prompt_tokens": 306,
+            "total_tokens": 366,
             "completion_tokens_details": {
                 "accepted_prediction_tokens": null,
                 "audio_tokens": null,
-                "reasoning_tokens": 53,
+                "reasoning_tokens": 21,
                 "rejected_prediction_tokens": null,
                 "text_tokens": null
             },
@@ -131,7 +113,7 @@
                 "text_tokens": null
             },
             "prompt_cache_hit_tokens": 0,
-            "prompt_cache_miss_tokens": 326
+            "prompt_cache_miss_tokens": 306
         }
     }
 ]
