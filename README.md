@@ -315,6 +315,55 @@ message = response.choices[0].message
 messages.append(message)
 ```
 
+*为什么必须把 assistant 的 tool_calls 放回 messages*
+
+正确顺序如下：
+
+```
+user
+ ↓
+assistant + tool_calls
+ ↓
+tool
+ ↓
+assistant
+```
+
+例如
+
+```python
+messages = [
+    {
+        "role": "user",
+        "content": "上海天气怎么样？"
+    },
+
+    {
+        "role": "assistant",
+        "tool_calls": [
+            {
+                "id": "call_123",
+                "function": {
+                    "name": "get_weather",
+                    "arguments": "{\"city\":\"上海\"}"
+                }
+            }
+        ]
+    },
+
+    {
+        "role": "tool",
+        "tool_call_id": "call_123",
+        "content": "{\"temperature\":28,\"weather\":\"多云\"}"
+    }
+]
+```
+
+*因为 `Tool Result`的`tool_call_id`必须对应`assistant`发出的`tool_calls的id`，模型需要知道【我之前要求做了什么？这个 tool result 对应哪个调用？】*
+*assistant 的 tool_calls 和 tool result 是一对。*
+
+```
+
 > 没有 Tool Call，说明模型已经可以直接回答，并结束Agent Loop
 
 ```python
