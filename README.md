@@ -14,21 +14,26 @@
     - `getagentkey.py` 由于使用deepseek作为模型，因此需要重写一些OpenAI原本封装好的属性，便于后续各个文件调用
     - `getclient.py` 封装client，便于后续调用
     - `constants.py` 放置常量
-- chapt0demo
-    - `deepseekhello.py` 类似于hello world，了解tool-calls
-    - `helloworld.py` 关于tool-calls的详细工作流程
-- deepseekapi
-    - `tool-call.py` 关于tool-calls的详细工作流程
-- agentssdk
-    - `00-helloworld.py` 使用`openai-agents` 完成Hello world 示例
-    - `01-first-agent-runner.py` 首个智能体运行
-- toolcalling
+- toolcalling: tool calling的学习
     - `00-calling.py` 不使用tool直接调用模型
     - `01-create-tool.py` 定义第一个tool
     - `02-call-function.py` 程序执行tool
     - `03-input-append.py` 把 Tool Output 交还给模型
+- agentloop: Agent Loop的学习
+    - `00-use-client-chat.py` 使用与原来`client.responses.create()`不同的请求，返回对象会不一致
+
+---
 
 ## 知识点
+
+| 名称            | 在本教程里的意思              | 由谁控制         |
+| ------------- | --------------------- | ------------ |
+| Tool Schema   | 给模型看的工具说明，写明名称、用途、参数  | 你写的程序        |
+| Tool Call     | 模型提出“请调用这个函数并传这些参数”   | 模型生成，程序校验    |
+| Tool Result   | Python 实际执行后返回的结果     | 你写的函数        |
+| Agent Loop    | 反复请求模型、执行工具、回传结果，直到结束 | 你写的程序        |
+| 工具注册表         | 把工具名、说明、Python 函数集中管理 | 你写的程序        |
+| `tool_choice` | 规定模型能否或必须选择工具         | 请求参数，受模型支持约束 |
 
 ### Tool Calling
 
@@ -199,3 +204,36 @@ log.info(final_response.output_text) #  南宁现在天气**晴**，气温大约
 
 *值得注意的是，在交还模型的过程中，记得使用`my_input.append(item)`追加function_call请求（不知道是不是deepseek的需求，GPT提供的文档没有这一步，导致了`Error code: 400 - {'error': {'message': 'No tool call found for tool output with call_id call_00_O6f4tl0zhNSnjrPAmoSb6262.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_request_error'}}`异常，问了deepseek，回答是只追加了 function_call_output，却遗漏了与之配对的 function_call 本身。）*
 *再次返回时，不会是冷冰冰的tool结果，而会添加模型的一些分析回答。至此，完成 用户 → 模型 → Tool Call → Python Tool → Tool Output → 模型 → 最终回答 闭环。*
+
+---
+
+### Agent Loop
+
+**Agent Loop（智能体循环）** 是 AI Agent 的核心运行机制：它让模型不是只做一次“输入→输出”，而是围绕一个目标不断重复 **观察 → 思考/规划 → 行动 → 获取反馈 → 更新状态**，直到任务完成或触发终止条件。也就是常说的 ReAct 循环：推理、行动、观察，再推理。
+
+> 普通 LLM 调用通常是：
+
+输入 → 模型生成 → 输出
+
+> Agent Loop 则是：
+
+输入 → 多轮推理 → 调用工具 → 读取结果 → 调整计划 → 再行动 → 输出
+
+它让 LLM 从“一次性文本生成器”变成能多步执行、试错和利用外部信息的“自主执行器”。
+
+```text
+用户提出问题
+    ↓
+Python 发出请求：messages + tools + tool_choice
+    ↓
+模型返回普通回答，或返回一个/多个 tool_calls
+    ↓ 若返回 tool_calls
+Python 根据工具名找到已注册函数 → 校验参数 → 执行函数
+    ↓
+把 assistant 的调用消息和每条 tool 结果追加到 messages
+    ↓
+再次请求模型；重复，直至普通回答或达到限制
+```
+
+OpenAI 官方把这个过程归纳为五步：提供工具、收到调用、应用程序执行、把结果发回模型、获得答案或更多调用。**Agent Loop 就是重复后面几步的 Python 控制循环**，不是让模型获得直接执行 Python 的权限。参见 [OpenAI Function Calling](https://developers.openai.com/api/docs/guides/function-calling/)。
+
