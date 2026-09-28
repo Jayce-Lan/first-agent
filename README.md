@@ -14,6 +14,7 @@
     - `getclient.py` 封装client，便于后续调用
     - `constants.py` 放置常量
     - `json_utils.py` 格式化JSON的工具，用于打印日志，便于查看
+    - `safe_eval.py` 自定义的安全eval表达式，防止直接通过操作系统
 - toolcalling: tool calling的学习
     - `00-calling.py` 不使用tool直接调用模型
     - `01-create-tool.py` 定义第一个tool
@@ -23,6 +24,8 @@
     - `00-use-client-chat.py` 使用与原来`client.responses.create()`不同的请求，返回对象会不一致
     - `01-create-tool2.py` 使用`client.chat.completions.create`调用LLM，使LLM获取Tool并获取返回值
     - `02-first-agent-loop.py` Agent Loop第一版
+- toolregistry: 多个tool的管理
+    - `01-multiple-tool-calling.py` 管理多个`tool`，执行多个`tool calling`
 
 ---
 
@@ -399,3 +402,211 @@ for tool_call in message.tool_calls:
 | finish_reason == "stop" |	模型正常说完了 |
 | finish_reason == "tool_calls" | 模型要求调工具，循环要继续 |
 | finish_reason == "length" | 输出被截断，属于异常情况 |
+
+---
+
+### Tool Registry
+
+把模型看到的 `Tool` 和 `Python 真正执行的函数` 连接起来。
+
+```
+┌──────────────────────┐
+│       LLM            │
+└──────────┬───────────┘
+           │
+           │ tool name
+           ↓
+┌──────────────────────┐
+│    TOOL_REGISTRY     │
+│                      │
+│ get_weather → fn     │
+│ calculator  → fn     │
+│ search      → fn     │
+└──────────┬───────────┘
+           │
+           ↓
+       Python Function
+```
+
+后续如需增加 Tool 只需要用代码即可调用：
+
+```python
+TOOL_REGISTRY = {
+    "get_weather": get_weather,
+    "get_time": get_time,
+    "calculator": calculator,
+}
+
+TOOL_REGISTRY["get_time"] = get_time
+```
+
+---
+
+### Multiple Tool Calling
+
+一次 `LLM Response` 返回多个 `Tool Call`。
+
+例如：
+
+```
+用户：
+南宁天气怎么样？现在几点？
+```
+
+
+模型可能返回：
+
+```text
+tool_calls:
+
+1. get_weather({"city": "上海"})
+
+2. get_time({"city": "上海"})
+```
+
+也就是：
+
+```python
+message.tool_calls = [
+    tool_call_1,
+    tool_call_2,
+]
+```
+
+所以千万不要写：
+
+```python
+tool_call = message.tool_calls[0]
+```
+
+然后认为只有一个。更稳妥的方法是这样实现的：
+
+```python
+for tool_call in message.tool_calls:
+    ...
+```
+
+#### Multiple Tool Calling 的完整执行过程
+
+假设：
+
+```text
+User:
+南宁天气怎么样？现在几点？
+```
+
+第一次：
+
+```text
+LLM
+ ↓
+返回两个 Tool Call
+
+get_weather("南宁")
+get_time("南宁")
+```
+
+Python：
+
+```text
+执行 get_weather
+执行 get_time
+```
+
+得到：
+
+```text
+weather_result
+time_result
+```
+
+然后：
+
+```text
+messages
+ ↓
+assistant tool_calls
+ ↓
+tool result 1
+tool result 2
+```
+
+再次调用 LLM。
+
+最终：
+
+```text
+南宁目前 30℃，天气多云，现在是 10:30。
+```
+
+#### 结合代码的具体流程
+
+> 定义多个tool
+
+```python
+def get_weather(city: str):
+    """
+        获取天气
+    """
+    weather_data = {
+            "东京": {
+                "temperature": 26,
+                "weather": "晴",
+            },
+            "南宁": {
+                "temperature": 31,
+                "weather": "晴",
+            },
+            "新加坡": {
+                "temperature": 30,
+                "weather": "雷阵雨",
+            },
+            "纽约": {
+                "temperature": 25,
+                "weather": "多云",
+            },
+        }
+    
+    return {"city": city, **weather_data.get(city)}
+
+
+def get_time(city: str):
+    """
+        获取时间
+    """
+    tz_name = TIMEZONES.get(city)
+    if tz_name is None:
+        time = f"未获取到当前城市[{city}]的时间"
+    else:
+        time = datetime.now(ZoneInfo(tz_name)).strftime("%Y-%m-%d %H:%M:%S")
+    return {
+        "city": city,
+        "time": time
+    }
+
+def calculator(expression: str):
+    return {
+        "expression": expression,
+        "result": eval(expression),
+    }
+```
+
+> 注册tool（Registry）
+
+```python
+TOOL_REGISTRY = {
+    "get_weather": get_weather,
+    "get_time": get_time,
+    "calculator": calculator,
+}
+```
+
+> 调用指定TOOL
+
+```python
+for tool_call in message.tool_calls:
+    ...
+    # 根据被管理的tool去调用
+    function = TOOL_REGISTRY.get(tool_name)
+    ...
+```

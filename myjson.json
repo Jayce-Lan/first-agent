@@ -1,91 +1,23 @@
 {
-    "id": "7aea7093-8de8-463a-9b34-523630c21aa5",
-    "choices": [
-        {
-            "finish_reason": "tool_calls",
-            "index": 0,
-            "logprobs": null,
-            "message": {
-                "content": "我来帮您查询南宁和深圳的天气。",
-                "refusal": null,
-                "role": "assistant",
-                "annotations": null,
-                "audio": null,
-                "function_call": null,
-                "tool_calls": [
-                    {
-                        "id": "call_00_ZFd0Qh5A0DbBstvvmKgZ8497",
-                        "function": {
-                            "arguments": "{\"city\": \"南宁\"}",
-                            "name": "get_weather"
-                        },
-                        "type": "function",
-                        "index": 0
-                    },
-                    {
-                        "id": "call_01_OJGLdNFIOgtQ6gpTRFTZ6121",
-                        "function": {
-                            "arguments": "{\"city\": \"深圳\"}",
-                            "name": "get_weather"
-                        },
-                        "type": "function",
-                        "index": 1
-                    }
-                ],
-                "reasoning_content": "The user asks about weather in Nanning and Shenzhen. I should make both calls in parallel."
-            }
-        }
-    ],
-    "created": 1790239947,
-    "model": "deepseek-flash",
-    "object": "chat.completion",
-    "metadata": null,
-    "moderation": null,
-    "service_tier": null,
-    "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
-    "usage": {
-        "completion_tokens": 97,
-        "prompt_tokens": 308,
-        "total_tokens": 405,
-        "completion_tokens_details": {
-            "accepted_prediction_tokens": null,
-            "audio_tokens": null,
-            "reasoning_tokens": 20,
-            "rejected_prediction_tokens": null,
-            "text_tokens": null
-        },
-        "prompt_tokens_details": {
-            "audio_tokens": null,
-            "cache_write_tokens": null,
-            "cached_tokens": 128,
-            "image_tokens": null,
-            "text_tokens": null
-        },
-        "prompt_cache_hit_tokens": 128,
-        "prompt_cache_miss_tokens": 180
-    }
-}
-
-{
-    "id": "bfaab791-dbde-42b9-b818-231dec07ad39",
+    "id": "bba4e59c-005f-42cc-b04c-54e83bddfd6d",
     "choices": [
         {
             "finish_reason": "stop",
             "index": 0,
             "logprobs": null,
             "message": {
-                "content": "今天两地的天气情况如下：\n\n| 城市 | 天气 | 气温 |\n|------|------|------|\n| 南宁 | 晴 | 31℃ |\n| 深圳 | 雷阵雨 | 30℃ |\n\n简单提示：南宁今天晴天、气温偏高（31℃），外出注意防晒补水；深圳有雷阵雨，气温 30℃，建议随身带伞，雷雨时尽量减少户外活动、避开空旷地带和树下。",
+                "content": "以下是查询结果：\n\n**南宁**\n- 天气：晴，气温 31℃\n- 当前时间：2026-09-28 11:05:20\n\n**新加坡**\n- 天气：雷阵雨，气温 30℃\n- 当前时间：2026-09-28 11:05:20\n\n两地气温接近（都在 30℃ 上下），但天气差别较大：南宁是晴天，新加坡有雷阵雨，出行记得带伞。另外，南宁和新加坡时间相同（均处于同一时区 UTC+8）。\n\n需要我再查别的城市，或者根据这些信息帮你做行程建议吗？",
                 "refusal": null,
                 "role": "assistant",
                 "annotations": null,
                 "audio": null,
                 "function_call": null,
                 "tool_calls": null,
-                "reasoning_content": "Now provide theanswer. Note the tool calls were already invoked once — I should now give the final answer without repeating a duplicate call."
+                "reasoning_content": ""
             }
         }
     ],
-    "created": 1790239948,
+    "created": 1790564720,
     "model": "deepseek-flash",
     "object": "chat.completion",
     "metadata": null,
@@ -93,71 +25,24 @@
     "service_tier": null,
     "system_fingerprint": "aeb56401ca74e127821c4f9126dcb669",
     "usage": {
-        "completion_tokens": 122,
-        "prompt_tokens": 445,
-        "total_tokens": 567,
+        "completion_tokens": 135,
+        "prompt_tokens": 702,
+        "total_tokens": 837,
         "completion_tokens_details": {
             "accepted_prediction_tokens": null,
             "audio_tokens": null,
-            "reasoning_tokens": 27,
+            "reasoning_tokens": 0,
             "rejected_prediction_tokens": null,
             "text_tokens": null
         },
         "prompt_tokens_details": {
             "audio_tokens": null,
             "cache_write_tokens": null,
-            "cached_tokens": 256,
+            "cached_tokens": 512,
             "image_tokens": null,
             "text_tokens": null
         },
-        "prompt_cache_hit_tokens": 256,
-        "prompt_cache_miss_tokens": 189
+        "prompt_cache_hit_tokens": 512,
+        "prompt_cache_miss_tokens": 190
     }
 }
-
-[
-    {
-        "role": "user",
-        "content": "南宁和深圳今天天气怎么样？"
-    },
-    {
-        "content": "我来帮您查询南宁和深圳的天气。",
-        "role": "assistant",
-        "tool_calls": [
-            {
-                "id": "call_00_ZFd0Qh5A0DbBstvvmKgZ8497",
-                "function": {
-                    "arguments": "{\"city\": \"南宁\"}",
-                    "name": "get_weather"
-                },
-                "type": "function",
-                "index": 0
-            },
-            {
-                "id": "call_01_OJGLdNFIOgtQ6gpTRFTZ6121",
-                "function": {
-                    "arguments": "{\"city\": \"深圳\"}",
-                    "name": "get_weather"
-                },
-                "type": "function",
-                "index": 1
-            }
-        ],
-        "reasoning_content": "The user asks about weather in Nanning and Shenzhen. I should make both calls in parallel."
-    },
-    {
-        "role": "tool",
-        "tool_call_id": "call_00_ZFd0Qh5A0DbBstvvmKgZ8497",
-        "content": "{\"temperature\":31,\"weather\":\"晴\"}"
-    },
-    {
-        "role": "tool",
-        "tool_call_id": "call_01_OJGLdNFIOgtQ6gpTRFTZ6121",
-        "content": "{\"temperature\":30,\"weather\":\"雷阵雨\"}"
-    },
-    {
-        "content": "今天两地的天气情况如下：\n\n| 城市 | 天气 | 气温 |\n|------|------|------|\n| 南宁 | 晴 | 31℃ |\n| 深圳 | 雷阵雨 | 30℃ |\n\n简单提示：南宁今天晴天、气温偏高（31℃），外出注意防晒补水；深圳有雷阵雨，气温 30℃，建议随身带伞，雷雨时尽量减少户外活动、避开空旷地带和树下。",
-        "role": "assistant",
-        "reasoning_content": "Now provide the answer. Note the tool calls were already invoked once — I should now give the final answer without repeating a duplicate call."
-    }
-]
