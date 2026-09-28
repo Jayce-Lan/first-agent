@@ -26,6 +26,10 @@
     - `02-first-agent-loop.py` Agent Loop第一版
 - toolregistry: 多个tool的管理
     - `01-multiple-tool-calling.py` 管理多个`tool`，执行多个`tool calling`
+- toolexecution: 顺序执行与并行（Sequential / Parallel Tool Execution）
+    - `01-sequential-demo.py` 进行代码的正常顺序执行
+    - `02-sequential-async-await.py` 使用异步`async`、`await` 控制代码的顺序执行（仍为顺序执行，但是使用异步控制）
+    - `03-asyncio-gather.py` 使用`asyncio.gather()`并行多个异步任务
 
 ---
 
@@ -610,3 +614,255 @@ for tool_call in message.tool_calls:
     function = TOOL_REGISTRY.get(tool_name)
     ...
 ```
+
+---
+
+### 顺序调用与并行调用（Sequential / Parallel Tool Execution）
+
+模型一次返回多个 Tool Call，不等于 Python 必须并行执行这些 Tool。
+
+```
+多个 Tool
+   ↓
+应该一个一个执行？
+还是
+应该同时执行？
+```
+
+> 关键流程
+
+``` text
+Multiple Tool Calling
+        ≠
+Parallel Tool Execution
+```
+
+完整关系是：
+
+``` text
+              LLM
+               ↓
+       一次产生多个 Tool Call
+               ↓
+          Python Runtime
+               ↓
+       ┌───────┴───────┐
+       ↓               ↓
+    Sequential       Parallel
+       ↓               ↓
+      for          asyncio.gather
+```
+
+也就是说：
+
+> **LLM 决定"要调用什么"，你的程序决定"怎么执行"。**
+
+DeepSeek 官方文档也明确说明 Tool Calls 可以支持多个函数调用，并支持
+parallel function calls；Chat Completions 中 `tool_choice="auto"`
+可以让模型选择调用一个或多个工具。
+
+> 为何要并行？
+
+假设三个 Tool：
+
+``` text
+天气 API       2 秒
+时间 API       1 秒
+汇率 API       3 秒
+```
+
+顺序：
+
+``` text
+2 + 1 + 3 = 6 秒
+```
+
+并行：
+
+``` text
+max(2, 1, 3) = 3 秒
+```
+
+图示：
+
+``` text
+顺序：
+
+Weather  ─────2s─────>
+                       Time ─1s─>
+                              Exchange ─────3s─────>
+
+总耗时 ≈ 6 秒
+```
+
+并行：
+
+``` text
+Weather  ─────2s─────────>
+Time     ─1s─────────────>
+Exchange ───────3s───────>
+
+总耗时 ≈ 3 秒
+```
+
+真实系统还会受到网络、API 限流、连接池等因素影响，但核心思想不变：
+
+> **独立的 I/O 操作可以并发等待。**
+
+---
+
+#### Sequential
+
+> 程序本身的顺序执行
+
+由于程序是逐行执行，因此在不使用`async`等关键字控制时，代码自行会顺序执行。
+
+> 使用`async`-`await`控制顺序执行
+
+把 Tool 改成异步函数：
+
+``` python
+import asyncio
+
+
+async def get_weather(city: str):
+
+    print(f"开始查询 {city} 天气")
+
+    await asyncio.sleep(2)
+
+    return {
+        "city": city,
+        "temperature": 28,
+        "weather": "晴",
+    }
+
+
+async def get_time(city: str):
+
+    print(f"开始查询 {city} 时间")
+
+    await asyncio.sleep(1)
+
+    return {
+        "city": city,
+        "time": "10:30",
+    }
+```
+
+这里：
+
+``` python
+async def
+```
+
+定义异步函数。
+
+而：
+
+``` python
+await
+```
+
+表示等待一个异步操作。
+
+*`async` 不等于并行。*
+
+> asyncio.run()
+
+asyncio.run() 的作用是：启动一个异步事件循环，运行传入的协程，等它执行完，然后关闭事件循环。它是同步代码进入异步世界的入口。
+
+Python 的 async def 函数调用后不会立刻执行，而是返回一个协程对象：
+
+```python
+async def hello():
+    return "hi"
+
+coro = hello()          # 只是创建协程，没执行
+print(coro)             # <coroutine object hello at 0x...>
+print(hello())          # 还会提示 "coroutine was never awaited"
+```
+
+必须交给事件循环调度才会真正跑起来，asyncio.run() 就是最省事的调度方式：
+
+```python
+result = asyncio.run(hello())
+print(result)   # "hi"
+```
+
+---
+
+#### Parallel
+
+可以使用`asyncio.gather()`并行多个异步任务
+
+```python
+weather, current_time = await asyncio.gather(
+    get_weather("上海"),
+    get_time("南宁")
+)
+```
+
+> gather 的核心思想
+
+``` python
+await asyncio.gather(
+    task_a(),
+    task_b(),
+    task_c(),
+)
+```
+
+可以理解为：
+
+``` text
+       ┌→ task A
+       │
+开始 ──┼→ task B
+       │
+       └→ task C
+              ↓
+          等待全部完成
+              ↓
+             results
+```
+
+> gather 的返回顺序
+
+假设：
+
+``` python
+results = await asyncio.gather(
+    slow_task(),
+    fast_task(),
+)
+```
+
+即使：
+
+``` text
+fast_task
+```
+
+先完成：
+
+``` text
+fast → 完成
+slow → 完成
+```
+
+返回结果仍然对应传入顺序：
+
+``` python
+results[0]  # slow_task
+results[1]  # fast_task
+```
+
+所以在 Agent 中不要只依赖列表位置。
+
+最好保留：
+
+``` python
+tool_call_id
+```
+---
