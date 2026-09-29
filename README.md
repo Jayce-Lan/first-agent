@@ -29,6 +29,7 @@
     - `01-multiple-tool-calling.py` 管理多个`tool`，执行多个`tool calling`
 - toolchoice: `toolchoice` 的学习
     - `01_tool_choice_test.py` 各个模式的区别
+    - `02_tool_choice_function.py` 指定function模式
 - toolexecution: 顺序执行与并行（Sequential / Parallel Tool Execution）
     - `01-sequential-demo.py` 进行代码的正常顺序执行
     - `02-sequential-async-await.py` 使用异步`async`、`await` 控制代码的顺序执行（仍为顺序执行，但是使用异步控制）
