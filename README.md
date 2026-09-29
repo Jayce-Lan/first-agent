@@ -15,6 +15,7 @@
     - `constants.py` 放置常量
     - `json_utils.py` 格式化JSON的工具，用于打印日志，便于查看
     - `safe_eval.py` 自定义的安全eval表达式，防止直接通过操作系统
+    - `my_function.py` 存储常用方法
 - toolcalling: tool calling的学习
     - `00-calling.py` 不使用tool直接调用模型
     - `01-create-tool.py` 定义第一个tool
@@ -26,6 +27,8 @@
     - `02-first-agent-loop.py` Agent Loop第一版
 - toolregistry: 多个tool的管理
     - `01-multiple-tool-calling.py` 管理多个`tool`，执行多个`tool calling`
+- toolchoice: `toolchoice` 的学习
+    - `01_tool_choice_test.py` 各个模式的区别
 - toolexecution: 顺序执行与并行（Sequential / Parallel Tool Execution）
     - `01-sequential-demo.py` 进行代码的正常顺序执行
     - `02-sequential-async-await.py` 使用异步`async`、`await` 控制代码的顺序执行（仍为顺序执行，但是使用异步控制）
@@ -617,6 +620,98 @@ for tool_call in message.tool_calls:
 
 ---
 
+### Tool Choice
+
+`Tool Calling` 解决的是模型如何提出工具调用请求；而 `tool_choice` 解决的是这一轮模型到底能不能调用 Tool，以及应该以多大自由度选择 Tool？
+
+``` text
+tools
+    ↓
+有哪些 Tool
+
+tool_choice
+    ↓
+这一轮怎么选 Tool
+
+tool_calls
+    ↓
+模型最终实际选择了什么
+```
+
+#### 四种核心模式
+
+DeepSeek Chat Completions 当前支持一下4种模式
+
+| 写法 | 含义 |
+| --- | --- |
+| none | 禁止调用 Tool |
+| auto | 模型自行决定是否调用 Tool |
+| required | 必须调用一个或多个 Tool（当前deepseek思考模式下不支持） |
+| 指定 function | 强制调用指定 Tool（当前deepseek思考模式下不支持） |
+
+*思考模式可以通过`extra_body={"thinking": {"type": "enabled/disabled"}}`来进行控制*
+
+> 基本代码
+
+基本代码
+
+```python
+response = client.chat.completions.create(
+    model="deepseek-chat",
+    messages=messages,
+    tools=tools,
+    tool_choice="none"
+)
+
+tool_choice="none"
+tool_choice="auto"
+tool_choice="required"
+tool_choice={
+    "type": "function",
+    "function": {
+        "name": "get_weather"
+    }
+}
+```
+
+> 模式对比
+
+| 模式 | 能否不调用 Tool | 是否必须 Tool | 是否指定具体 Tool |
+| --- | --- | --- | --- |
+| none | ❌ | ❌ | ❌ |
+| auto | ✅ | ❌ | ❌ |
+| required | ❌ | ✅  | ❌ |
+| specific function | ❌ | ✅  | ✅  |
+
+ `tool_choice` 是 Agent Runtime 的一个**控制点**：
+
+``` text
+User
+ ↓
+LLM
+ ↓
+tool_choice
+ ↓
+┌───────────────┐
+│ none          │ → 不调用
+│ auto          │ → 模型决定
+│ required      │ → 必须调用
+│ specific      │ → 指定调用
+└───────────────┘
+ ↓
+tool_calls
+ ↓
+Python Runtime
+ ↓
+Tool Result
+ ↓
+LLM
+ ↓
+Final Answer
+```
+
+---
+
 ### 顺序调用与并行调用（Sequential / Parallel Tool Execution）
 
 模型一次返回多个 Tool Call，不等于 Python 必须并行执行这些 Tool。
@@ -709,8 +804,6 @@ Exchange ───────3s───────>
 
 > **独立的 I/O 操作可以并发等待。**
 
----
-
 #### Sequential
 
 > 程序本身的顺序执行
@@ -790,8 +883,6 @@ result = asyncio.run(hello())
 print(result)   # "hi"
 ```
 
----
-
 #### Parallel
 
 可以使用`asyncio.gather()`并行多个异步任务
@@ -865,4 +956,5 @@ results[1]  # fast_task
 ``` python
 tool_call_id
 ```
----
+
+#### 异步 Tool Registry的改造
