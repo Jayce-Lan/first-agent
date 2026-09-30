@@ -1,49 +1,50 @@
-[
-    {
-        "role": "user",
-        "content": "南宁、新加坡的天气如何？现在几点？"
-    },
-    {
-        "content": "I'll check both the weather and current time for these two cities.",
-        "role": "assistant",
-        "tool_calls": [
-            {
-                "id": "call_00_FnniuwEnANUBuySZIw0H6723",
-                "function": {
-                    "arguments": "{\"city\": \"南宁\"}",
-                    "name": "get_weather"
-                },
-                "type": "function",
-                "index": 0
-            },
-            {
-                "id": "call_01_hlunjVAES5lnwtu6LggU8778",
-                "function": {
-                    "arguments": "{\"city\": \"新加坡\"}",
-                    "name": "get_weather"
-                },
-                "type": "function",
-                "index": 1
-            },
-            {
-                "id": "call_02_WX9xlpxP5bam3m4nvjEv8569",
-                "function": {
-                    "arguments": "{\"city\": \"南宁\"}",
-                    "name": "get_time"
-                },
-                "type": "function",
-                "index": 2
-            },
-            {
-                "id": "call_03_R7HLnV7NtNr98xB15lib8592",
-                "function": {
-                    "arguments": "{\"city\": \"新加坡\"}",
-                    "name": "get_time"
-                },
-                "type": "function",
-                "index": 3
+{
+    "id": "chatcmpl-394",
+    "choices": [
+        {
+            "finish_reason": "tool_calls",
+            "index": 0,
+            "logprobs": null,
+            "message": {
+                "content": "",
+                "refusal": null,
+                "role": "assistant",
+                "annotations": null,
+                "audio": null,
+                "function_call": null,
+                "tool_calls": [
+                    {
+                        "id": "call_dhlxfesh",
+                        "function": {
+                            "arguments": "{\"city_a\":{\"city\":\"南宁\",\"temperature\":31},\"city_b\":{\"city\":\"新加坡\",\"temperature\":30}}",
+                            "name": "calculate_difference"
+                        },
+                        "type": "function",
+                        "index": 0
+                    }
+                ],
+                "reasoning": "现在我有了两个城市的天气信息：\n- 新加坡：气温30度，天气雷阵雨\n- 南宁：气温31度，天气晴\n\n现在我需要调用compare_difference工具来比较这两个城市的气温高低。"
             }
-        ],
-        "reasoning_content": "The user asks about weather in Nanning and Singapore, and the current time. I need to call get_weather for both cities and get_time for both cities. These are independent calls, so I can make them all in one block."
+        }
+    ],
+    "created": 1790735978,
+    "model": "qwen3.5:4b",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": null,
+    "system_fingerprint": "fp_ollama",
+    "usage": {
+        "completion_tokens": 119,
+        "prompt_tokens": 689,
+        "total_tokens": 808,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 659,
+            "image_tokens": null,
+            "text_tokens": null
+        }
     }
-]
+}

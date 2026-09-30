@@ -4,10 +4,10 @@
 import orjson
 from utils.getclient import client
 from utils.logger import log
-from utils.constants import DEEPSEEK_FLASH_MOEDL
+from utils.constants import DEEPSEEK_FLASH_MODEL
 
 result = client.chat.completions.create(
-    model=DEEPSEEK_FLASH_MOEDL,
+    model=DEEPSEEK_FLASH_MODEL,
     messages=[{"role": "user", "content": "请描述一下什么是Agent Loop"}]
 )
 

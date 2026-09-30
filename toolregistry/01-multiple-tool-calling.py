@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 import orjson
 from utils.getclient import client
 from utils.logger import log
-from utils.constants import DEEPSEEK_FLASH_MOEDL, TIMEZONES
+from utils.constants import DEEPSEEK_FLASH_MODEL, TIMEZONES
 from utils.json_utils import to_json
 from utils.safe_eval import safe_eval
 
@@ -134,7 +134,7 @@ messages = [
 
 while True:
     response = client.chat.completions.create(
-        model=DEEPSEEK_FLASH_MOEDL,
+        model=DEEPSEEK_FLASH_MODEL,
         messages=messages,
         tools=tools
     )

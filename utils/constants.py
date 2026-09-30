@@ -2,7 +2,10 @@
 DEFAULT_MODEL = "deepseek-chat"
 
 # deepseek flash模型，默认开启思考模式
-DEEPSEEK_FLASH_MOEDL = "deepseek-flash"
+DEEPSEEK_FLASH_MODEL = "deepseek-flash"
+
+# 本地部署的千问3.5
+OLLAMA_QWEN35_MODEL = "qwen3.5:4b"
 
 # 时区获取
 TIMEZONES = {

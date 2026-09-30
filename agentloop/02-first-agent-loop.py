@@ -4,7 +4,7 @@
 import orjson
 from utils.getclient import client
 from utils.logger import log
-from utils.constants import DEEPSEEK_FLASH_MOEDL
+from utils.constants import DEEPSEEK_FLASH_MODEL
 from utils.json_utils import to_json
 
 def get_weather(city: str):
@@ -61,7 +61,7 @@ messages = [
 # 根据LLM调用Tool的情况决定是否循环
 while True:
     response = client.chat.completions.create(
-        model=DEEPSEEK_FLASH_MOEDL,
+        model=DEEPSEEK_FLASH_MODEL,
         messages=messages,
         tools=tools,
     )

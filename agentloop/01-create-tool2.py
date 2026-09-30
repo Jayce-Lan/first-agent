@@ -4,7 +4,7 @@
 import orjson
 from utils.getclient import client
 from utils.logger import log
-from utils.constants import DEEPSEEK_FLASH_MOEDL
+from utils.constants import DEEPSEEK_FLASH_MODEL
 
 def get_weather(city: str):
     weather_data = {
@@ -58,7 +58,7 @@ messages = [
 ]
 
 response = client.chat.completions.create(
-    model=DEEPSEEK_FLASH_MOEDL,
+    model=DEEPSEEK_FLASH_MODEL,
     messages=messages,
     tools=tools,
 )

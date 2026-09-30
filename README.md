@@ -12,6 +12,7 @@
     - `logger.py` 日志打印工具类
     - `getagentkey.py` 由于使用deepseek作为模型，因此需要重写一些OpenAI原本封装好的属性，便于后续各个文件调用
     - `getclient.py` 封装client，便于后续调用
+    - `getclient_ollama.py` 封装client，便于后续调用，用于调用本地ollama部署的模型
     - `constants.py` 放置常量
     - `json_utils.py` 格式化JSON的工具，用于打印日志，便于查看
     - `safe_eval.py` 自定义的安全eval表达式，防止直接通过操作系统
@@ -21,6 +22,7 @@
     - `01-create-tool.py` 定义第一个tool
     - `02-call-function.py` 程序执行tool
     - `03-input-append.py` 把 Tool Output 交还给模型
+    - `04_try_ollama.py` 测试本地模型运行情况
 - agentloop: Agent Loop的学习
     - `00-use-client-chat.py` 使用与原来`client.responses.create()`不同的请求，返回对象会不一致
     - `01-create-tool2.py` 使用`client.chat.completions.create`调用LLM，使LLM获取Tool并获取返回值
@@ -30,6 +32,10 @@
 - toolchoice: `toolchoice` 的学习
     - `01_tool_choice_test.py` 各个模式的区别
     - `02_tool_choice_function.py` 指定function模式
+    - toolchoice-orders-demo: 小型的订单项目实战，系统学习tool choice
+        - `main.py`
+        - `tools.py`
+        - `agent.py`
 - toolexecution: 顺序执行与并行（Sequential / Parallel Tool Execution）
     - `01-sequential-demo.py` 进行代码的正常顺序执行
     - `02-sequential-async-await.py` 使用异步`async`、`await` 控制代码的顺序执行（仍为顺序执行，但是使用异步控制）
@@ -313,7 +319,7 @@ LLM
 
 ```python
 response = client.chat.completions.create(
-    model=DEEPSEEK_FLASH_MOEDL,
+    model=DEEPSEEK_FLASH_MODEL,
     messages=messages,
     tools=tools,
 )

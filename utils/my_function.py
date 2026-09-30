@@ -56,3 +56,20 @@ def calculator(expression: str):
         "expression": expression,
         "result": safe_eval(expression),
     }
+
+def calculate_difference(city_a: dict, city_b: dict):
+    """
+        城市温度对比
+    """
+    for item in (city_a, city_b):
+        if not item.get("city") or item.get("temperature") is None:
+            return f"未获取到正确的城市及气温: {item}"
+
+    if city_a["temperature"] == city_b["temperature"]:
+        return f"{city_a['city']} 与 {city_b['city']} 气温一致，均为 {city_a['temperature']}°C"
+    elif city_a["temperature"] > city_b["temperature"]:
+        return f"{city_a['city']} 气温 ({city_a['temperature']}°C) 高于 {city_b['city']} ({city_b['temperature']}°C)"
+    else:
+        return f"{city_a['city']} 气温 ({city_a['temperature']}°C) 低于 {city_b['city']} ({city_b['temperature']}°C)"
+
+
