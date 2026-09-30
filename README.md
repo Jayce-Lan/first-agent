@@ -32,8 +32,8 @@
 - toolchoice: `toolchoice` 的学习
     - `01_tool_choice_test.py` 各个模式的区别
     - `02_tool_choice_function.py` 指定function模式
-    - toolchoice-orders-demo: 小型的订单项目实战，系统学习tool choice
-        - `main.py`
+    - toolchoice_orders_demo: 小型的订单项目实战，系统学习tool choice
+        - `tod01_main.py`
         - `tools.py`
         - `agent.py`
 - toolexecution: 顺序执行与并行（Sequential / Parallel Tool Execution）
@@ -716,6 +716,12 @@ LLM
  ↓
 Final Answer
 ```
+
+#### 一些小坑
+
+1. 如果业务上根本不需要 Tool，强制调用反而会制造无意义调用。
+2. 当前学习过程中，我只尝试了`deepseek`云端模型和`ollama`部署的`qwen3.5:4b`，通过`ollama`部署的模型并不能像`deepseek`一样使用`required`规定强制调用模型，这是当前`ollama`存在的问题，如果找不到必须调用的方法，它会默认使用`auto`。
+3. `Ollama`静默忽略`tool_choice`。
 
 ---
 
