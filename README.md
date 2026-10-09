@@ -17,6 +17,7 @@
     - `json_utils.py` 格式化JSON的工具，用于打印日志，便于查看
     - `safe_eval.py` 自定义的安全eval表达式，防止直接通过操作系统
     - `my_function.py` 存储常用方法
+    - `my_async_function.py` 存储异步常用方法
 - toolcalling: tool calling的学习
     - `00-calling.py` 不使用tool直接调用模型
     - `01-create-tool.py` 定义第一个tool
@@ -40,6 +41,7 @@
     - `01-sequential-demo.py` 进行代码的正常顺序执行
     - `02-sequential-async-await.py` 使用异步`async`、`await` 控制代码的顺序执行（仍为顺序执行，但是使用异步控制）
     - `03-asyncio-gather.py` 使用`asyncio.gather()`并行多个异步任务
+    - `04_parallel_tool.py` 并行执行tool
 
 ---
 
@@ -970,4 +972,18 @@ results[1]  # fast_task
 tool_call_id
 ```
 
-#### 异步 Tool Registry的改造
+#### 异步 Tool Registry的流程
+
+```
+LLM
+ ↓
+产生多个 Tool Call
+ ↓
+Python 并行执行
+ ↓
+把结果全部交给 LLM
+ ↓
+LLM 再继续
+```
+
+`Parallel Tool Execution` 本质上是 Agent Runtime 层面的并发优化
