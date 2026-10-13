@@ -1031,3 +1031,27 @@ JSON 解析 + Pydantic 校验
 
 #### 结构化输出Structured Output
 
+> 拟定返回的内容格式
+
+```python
+from typing import Literal
+from pydantic import BaseModel
+
+class UserIntent(BaseModel):
+    intent: Literal["get_order", "get_shipping", "general"]
+    order_id: str | None
+    reply: str
+```
+
+> 通过`system`指定输出结果
+
+```python
+messages=[                                                                    
+    {"role": "system", "content": (                                           
+            "识别用户意图，只输出 JSON 对象，字段为 intent、order_id、reply。"
+            "intent 只能是 get_order、get_shipping、general。"                
+            "如果没有订单号，order_id 填 null。"                              
+        )},                                                                   
+    {"role": "user", "content": user_text}                                    
+],
+```
