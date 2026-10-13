@@ -46,6 +46,9 @@
     - `04_parallel_tool.py` 并行执行tool
 - timeoutandexcept: 超时与异常的处理
     - `00_test_time_out.py` 一个小的超时模拟
+- structuredoutput: 结构化输出
+    - `user_intent.py` 存储结构化输出数据
+    - `01_test_user_intent.py` 测试存储结构化输出数据
 
 ---
 
@@ -991,3 +994,40 @@ LLM 再继续
 ```
 
 `Parallel Tool Execution` 本质上是 Agent Runtime 层面的并发优化
+
+---
+
+### Structured Output、Context / Memory、Error / Retry
+
+| 知识点               | 解决的问题               | 例子                               |
+| ----------------- | ------------------- | -------------------------------- |
+| Structured Output | 模型输出能否被程序稳定解析和校验    | 固定返回 `intent`、`order_id`、`reply` |
+| Context / Memory  | 模型如何理解前文，应用如何保存跨轮信息 | 用户先说订单号，下一轮问“物流到哪了？”             |
+| Error / Retry     | 请求失败、工具异常时如何恢复      | 网络超时有限重试，参数错误不盲目重试               |
+
+> 整体流程
+
+```text
+用户输入
+   ↓
+读取会话 Context / Memory
+   ↓
+调用模型 ──模型请求失败──> Error / Retry
+   ↓
+Structured Output（JSON）
+   ↓
+JSON 解析 + Pydantic 校验
+   ↓
+业务路由 / Tool 执行 ──工具失败──> Tool Error Handling
+   ↓
+把回答写回会话历史
+```
+
+> 先牢记三个边界
+
+- Structured Output 约束输出结构，不保证事实一定正确。
+- Context 是本轮实际发给模型的信息；Memory 是应用保存并在需要时取回的信息。
+- Retry 是有限恢复策略，不是把所有错误都重复执行。
+
+#### 结构化输出Structured Output
+

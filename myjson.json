@@ -1,37 +1,26 @@
 {
-    "id": "chatcmpl-787",
+    "id": "chatcmpl-921",
     "choices": [
         {
-            "finish_reason": "tool_calls",
+            "finish_reason": "stop",
             "index": 0,
             "message": {
-                "content": "",
+                "content": "{\"intent\": \"get_shipping\", \"order_id\": \"1001\", \"reply\": \"正在为您查询物流信息\"}",
                 "role": "assistant",
-                "tool_calls": [
-                    {
-                        "id": "call_4wklg12n",
-                        "function": {
-                            "arguments": "{\"order_id\":\"10001\"}",
-                            "name": "get_order"
-                        },
-                        "type": "function",
-                        "index": 0
-                    }
-                ],
-                "reasoning": "工具调用返回错误信息，看起来是一个系统问题。让我再尝试一次查询订单10001。"
+                "reasoning": "好的，我需要分析用户的输入来确定他们的意图。用户说“我想查询订单1001的物流信息”。首先，确定他们的主请求是什么。这里用户明确提到了订单号是1001，并且要求的是物流信息查询。根据之前的例子，可能的意图包括get_order、get_shipping或者general。\n\n接下来，根据常见的订单系统功能，查询物流信息通常属于获取发货或运输状态的部分，所以应该对应get_shipping。而get_order通常是订单本身的详情，比如商品、金额等。但用户这里明确要的是物流信息，所以更倾向于shipping相关的意图。\n\n另外，用户提供了订单号1001，所以order_id应该填1001，而不是null。根据规则，如果没有订单号则填null，这里有订单号了。因此正确填写应该是1001，而intent是get_shipping。reply部分需要给出一个合适的回复，比如确认订单查询成功或请求更多信息，但根据指令中的例子，可能需要简洁的回复，比如“正在为您查询物流信息。”\n\n最后检查是否符合格式要求：JSON对象，三个字段，intent不能为其他值，order_id是否为数字或null。这里用户有订单号，所以正确。没有额外信息需要处理，输出符合要求的JSON即可。"
             }
         }
     ],
-    "created": 1790753983,
+    "created": 1791860435,
     "model": "qwen3.5:4b",
     "object": "chat.completion",
     "system_fingerprint": "fp_ollama",
     "usage": {
-        "completion_tokens": 57,
-        "prompt_tokens": 515,
-        "total_tokens": 572,
+        "completion_tokens": 290,
+        "prompt_tokens": 65,
+        "total_tokens": 355,
         "prompt_tokens_details": {
-            "cached_tokens": 487
+            "cached_tokens": 61
         }
     }
 }
