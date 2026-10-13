@@ -18,6 +18,8 @@
     - `safe_eval.py` 自定义的安全eval表达式，防止直接通过操作系统
     - `my_function.py` 存储常用方法
     - `my_async_function.py` 存储异步常用方法
+- entity: 存储实体类
+    `tool_result.py` 存储异常返回的实体类
 - toolcalling: tool calling的学习
     - `00-calling.py` 不使用tool直接调用模型
     - `01-create-tool.py` 定义第一个tool
@@ -42,6 +44,8 @@
     - `02-sequential-async-await.py` 使用异步`async`、`await` 控制代码的顺序执行（仍为顺序执行，但是使用异步控制）
     - `03-asyncio-gather.py` 使用`asyncio.gather()`并行多个异步任务
     - `04_parallel_tool.py` 并行执行tool
+- timeoutandexcept: 超时与异常的处理
+    - `00_test_time_out.py` 一个小的超时模拟
 
 ---
 
