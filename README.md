@@ -49,6 +49,11 @@
 - structuredoutput: 结构化输出
     - `user_intent.py` 存储结构化输出数据
     - `01_test_user_intent.py` 测试存储结构化输出数据
+    order_agent: 整合结构化输出、回话历史以及异常返回
+        - `models.py` 定义结构化意图，即结构化输出结果
+        - `tools.py` 模拟订单系统
+        - `memory.py` 会话历史与业务记忆
+        - `order_main.py` 主业务逻辑，包含：结构化输出、模型请求有限重试、执行意图与工具超时
 
 ---
 

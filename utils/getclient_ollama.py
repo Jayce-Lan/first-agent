@@ -22,3 +22,14 @@ async_client = AsyncOpenAI(
     timeout=20.0,  # 单次模型 HTTP 请求超时
     max_retries=0, # 本教程手动演示错误处理
 )
+
+def get_async_client(time_out: float = 20.0) -> AsyncOpenAI:
+    """
+    获取异步客户端
+    """
+    return AsyncOpenAI(
+    api_key=os.getenv("OLLAMA_API_KEY"),
+    base_url=os.getenv("OLLAMA_API_URL"),
+    timeout=time_out,  # 单次模型 HTTP 请求超时
+    max_retries=0, # 本教程手动演示错误处理
+)
